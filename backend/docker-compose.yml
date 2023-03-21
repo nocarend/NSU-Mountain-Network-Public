@@ -1,0 +1,25 @@
+version: '2.10'
+
+services:
+  web:
+    build: ./
+    command: flask nsu.py run -h 0.0.0.0
+#    volumes:
+#      - ./services/web/:/usr/src/app/
+    ports:
+      - 5000:5000
+    env_file:
+      - ./.env
+      - ./.flaskenv
+    depends_on:
+      - db
+  db:
+    image: postgres:13-alpine
+    volumes:
+      - postgres_data:/var/lib/postgresql/data/
+    environment:
+      - POSTGRES_USER=nocarend
+      - POSTGRES_PASSWORD=SomeBullshit
+      - POSTGRES_DB=stock
+volumes:
+  postgres_data:
