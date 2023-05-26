@@ -1,0 +1,17 @@
+Смена пользовательского логина
+---
+tags:
+  - User's personal data
+security:
+  - bearerAuth: [ ]
+requestBody:
+  content:
+    application/json:
+      schema:
+        $ref: '#/components/schemas/NewLoginRequest'
+      required: 'true'
+responses:
+  200:
+    description: Login has changed
+  403:
+    description: Login must be unique

@@ -1,16 +1,18 @@
+from flasgger import swag_from
 from flask import jsonify, request, Response
-from flask_praetorian.exceptions import ExpiredAccessError,\
+from flask_praetorian import auth_required
+from flask_praetorian.exceptions import BlacklistedError, ExpiredAccessError,\
 	InvalidTokenHeader,\
 	InvalidUserError,\
 	MissingToken
 
-from app import guard
+from app import db, guard
 from app.api.auth import bp
 from app.api.auth.email import send_password_reset_email,\
 	send_signup_confirm_email
+from app.api.auth.my_profile.routes import my_roles
 from app.api.auth.validators import email_validate, password_validate,\
 	phone_validate
-from app.api.protected.routes import protected_from_any
 from app.errors.handlers import AlreadyAuthError, ElementNotFoundError,\
 	JSONNotEnoughError,\
 	ValidationError,\
@@ -18,45 +20,14 @@ from app.errors.handlers import AlreadyAuthError, ElementNotFoundError,\
 from app.helpers.functions import none_check
 from app.models.user import User
 from app.models.user_signup import UserSignup
+from app.tokens import to_user_blacklist
 
 
 @bp.route('/signup', methods=['POST'])
+@swag_from('yaml/routes/signup.yaml')
 def signup():
-	"""
-	Registration with given data.
-	---
-	parameters:
-		- in: body
-		  name: Registration
-		  schema:
-			type: object
-			required:
-			  - login
-			  - email
-			  - name
-			  - phone
-			  - password
-			properties:
-			  login:
-				type: string
-			  email:
-			    type: string
-			  name:
-			    type: string
-			  phone:
-			    type: string
-			  password:
-				type: string
-	components:
-	responses:
-	  200:
-		description: User should check email to confirm registration.
-	  403:
-		description: Some of unique data (username, email or phone) is
-		already taken.
-	"""
 	try:
-		protected_from_any()
+		my_roles()
 		raise AlreadyAuthError()
 	except MissingToken:
 		pass
@@ -79,7 +50,7 @@ def signup():
 		raise ValidationError()
 	if not none_check(6, [UserSignup.search_by_login(login),
 	                      UserSignup.search_by_email(
-			                      email), UserSignup.search_by_phone(phone),
+		                      email), UserSignup.search_by_phone(phone),
 	                      User.search_by_email(email), User.search_by_login(
 			login), User.search_by_phone(phone)]):
 		raise ValidationError()
@@ -90,33 +61,11 @@ def signup():
 	return Response(status=200)
 
 
-@bp.route('/settings/confirm/<token>', methods=['POST'])
-def settings_confirm(token):
-	if User.verify_settings_email_token(token) is None:
-		raise WrongTokenError()
-	return Response(status=202)
-
-
 @bp.route('/signup/confirm/<token>', methods=['POST'])
+@swag_from('yaml/routes/signup_confirm.yaml')
 def signup_confirm(token):
-	"""
-	Confirm email for registration.
-	---
-	parameters:
-		- in: path
-		  name: Token
-		  description: Confirmation token.
-	definitions:
-	  token:
-		type: string
-	responses:
-	  200:
-		description: Confirmation successfully.
-	  403:
-		description: Token doesn't exist or User has already confirmed email.
-	"""
 	try:
-		protected_from_any()
+		my_roles()
 		raise AlreadyAuthError()
 	except MissingToken:
 		pass
@@ -126,53 +75,19 @@ def signup_confirm(token):
 		pass
 	except InvalidUserError:
 		pass
+	except BlacklistedError:
+		pass
 	if UserSignup.verify_confirmation_email_token(token) is None:
 		raise WrongTokenError()
+	db.session.commit()
 	return Response(status=200)
 
 
 @bp.route('/login', methods=['POST'])
+@swag_from('yaml/routes/login.yaml')
 def login():
-	"""
-	Authentication via login and password.
-	---
-	parameters:
-        - in: body
-          name: Authentication
-          description: Login.
-          schema:
-            type: object
-            required:
-              - login
-              - password
-            properties:
-              login:
-                type: string
-              password:
-                type: string
-	definitions:
-	  access_token:
-	    type: object
-	    properties:
-	      access_token:
-	        type: string
-	  login:
-	    type: string
-	  password:
-	    type: string
-	responses:
-	  200:
-	    description: Token to access private pages.
-	    schema:
-	      $ref: '#/definitions/access_token'
-	  401:
-	    description: Wrong login or password.
-	  403:
-	    description: User is already authenticated or username | password is
-	    missing.
-	"""
 	try:
-		protected_from_any()
+		my_roles()
 		raise AlreadyAuthError()
 	except MissingToken:
 		pass
@@ -181,6 +96,8 @@ def login():
 	except ExpiredAccessError:
 		pass
 	except InvalidUserError:
+		pass
+	except BlacklistedError:
 		pass
 	req = request.get_json(force=True)
 	login = req.get('login', None)
@@ -194,63 +111,28 @@ def login():
 	return jsonify(access_token=guard.encode_jwt_token(user)), 200
 
 
+@bp.route("/logout", methods=['POST'])
+@auth_required
+def logout():
+	token = guard.extract_jwt_token(guard.read_token_from_header())
+	to_user_blacklist(token['jti'])
+	return Response(status=200)
+
+
 @bp.route('/refresh', methods=['GET'])
+@swag_from('yaml/routes/refresh.yaml')
 def refresh():
-	"""
-	Refresh access token expiration by creating a new one.
-	---
-	parameters:
-		- in: header
-		  name: Authorization
-		  schema:
-			type: string
-			example: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
-		  required: true
-	responses:
-	  200:
-		description: 'New token to access private pages.
-		Response example:
-			{
-				"access_token": "eyJhbGciOiJIUzI1NiI..."
-			}'
-	  401:
-		description: JWT token not found in headers under 'Authorization' or
-		Invalid token.
-	  425:
-		description: Access permission for token has not expired. may not
-		refresh.
-	"""
 	old_token = guard.read_token_from_header()
+	to_user_blacklist(old_token)
 	new_token = guard.refresh_jwt_token(old_token)
 	return jsonify(access_token=new_token), 200
 
 
 @bp.route('/reset_password_request', methods=['POST'])
+@swag_from('yaml/routes/reset_password_request.yaml')
 def reset_password_request():
-	"""
-	Send link to user's email to reset password.
-	---
-	parameters:
-		- in: body
-		  name: Sending mail
-		  schema:
-			type: object
-			required:
-			  - email
-			properties:
-			  email:
-				type: string
-	definitions:
-	  email:
-		type: string
-	responses:
-	  200:
-		description: Mail is send.
-	  403:
-		description: User is already authenticated or Email doesn't exist.
-	"""
 	try:
-		protected_from_any()
+		my_roles()
 		raise AlreadyAuthError()
 	except MissingToken:
 		pass
@@ -272,36 +154,10 @@ def reset_password_request():
 
 
 @bp.route('/reset_password/<token>', methods=['POST'])
+@swag_from('yaml/routes/reset_password.yaml')
 def reset_password(token):
-	"""
-	Set new password by given link with valid token.
-	---
-	parameters:
-		- in: path
-		  name: Token
-		  description: Generated token for password resetting.
-		- in: body
-		  name: Password
-		  schema:
-			type: object
-			required:
-			  - password
-			properties:
-			  password:
-				type: string
-	definitions:
-	  token:
-		type: string
-	  password:
-	    type: string
-	responses:
-	  200:
-		description: Confirmation successfully.
-	  403:
-		description: Token doesn't exist.
-	"""
 	try:
-		protected_from_any()
+		my_roles()
 		raise AlreadyAuthError()
 	except MissingToken:
 		pass
@@ -323,22 +179,3 @@ def reset_password(token):
 	if password:
 		user.set_password(password)
 	return Response(status=200 if password else 404)
-
-# from app import guard
-# from app.models import Item, User
-# from app import db
-# import random
-#
-#
-# @bp.route('/kek', methods=['POST'])
-# def kek():
-# 	for items in db.session.execute(db.select(Item)).scalars():
-# 		# salt = UserSalt.query.filter_by(user_id=user.user_id).first().salt
-# 		# user.user_password=guard.hash_password(user.user_password+salt)
-# 		# db.session.add(user_salt)
-# 		items.item_weight=random.randint(1,1000)
-# 		db.session.commit()
-# 	return Response(status=200)
-# kek()
-
-# print(mak)

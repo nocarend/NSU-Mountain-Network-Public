@@ -1,0 +1,16 @@
+Принять заявки на бронь предметов.
+---
+tags:
+  - Warehouseman option, work with items
+security:
+  - bearerAuth: [ ]
+requestBody:
+  content:
+    application/json:
+      schema:
+        $ref: '#/components/schemas/ListApproveItemRequest'
+responses:
+  200:
+    description: Requests approved.
+  403:
+    description: Wrong use_id.

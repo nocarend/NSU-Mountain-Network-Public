@@ -35,3 +35,4 @@ def send_settings_confirm_email(user, email):
 	           html_body=render_template('email/confirm_email.html',
 	                                     user=user,
 	                                     token=token))
+	return token

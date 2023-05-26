@@ -1,0 +1,19 @@
+Получить аватарку предмета.
+---
+tags:
+  - User option, work with items
+security:
+  - bearerAuth: [ ]
+parameters:
+  - in: path
+    name: item_id
+    schema:
+      $ref: '#/components/schemas/ItemIdRequest'
+    required: true
+    description: Numeric ID of the item to get
+responses:
+  200:
+    description: Image is given.
+  404:
+    description:
+      Item is not found.

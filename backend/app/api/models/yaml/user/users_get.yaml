@@ -1,0 +1,13 @@
+Возвращает данные всех пользователей
+---
+tags:
+  - Warehouseman option, work with users
+security:
+  - bearerAuth: [ ]
+responses:
+  200:
+    description: All users data.
+    content:
+      application/json:
+        schema:
+          $ref: '#/components/schemas/ListUserDataResponse'

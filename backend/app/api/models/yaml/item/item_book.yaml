@@ -1,0 +1,19 @@
+Кинуть заявку на бронь (кладовщик бронирует сразу, без заявки).
+---
+tags:
+  - User option, work with items
+#  - Warehouseman option, work with items
+security:
+  - bearerAuth: [ ]
+requestBody:
+  content:
+    application/json:
+      schema:
+        $ref: '#/components/schemas/ListBookItemsRequest'
+responses:
+  200:
+    description: Successfully
+  403:
+    description: "User don't have enough money or Is given wrong item_id
+    or Not enough
+    arguments in JSON body."

@@ -1,0 +1,15 @@
+Подтвердить изменение электронной почты.
+---
+tags:
+  - User's personal data
+parameters:
+  - in: path
+    name: token
+    schema:
+      $ref: '#/components/schemas/TokenConfirmRequest'
+    required: true
+responses:
+  202:
+    description: Email has changed.
+  403:
+    description: Wrong token.

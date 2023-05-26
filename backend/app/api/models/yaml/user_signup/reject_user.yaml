@@ -1,0 +1,18 @@
+Отклонить заявку пользователя на регистрацию
+---
+tags:
+  - Warehouseman option, work with users
+security:
+  - bearerAuth: [ ]
+parameters:
+  - in: path
+    name: signup_id
+    schema:
+      $ref: '#/components/schemas/SignupIdRequest'
+    required: true
+responses:
+  200:
+    description: Request rejected.
+  404:
+    description: Wrong signup_id.
+

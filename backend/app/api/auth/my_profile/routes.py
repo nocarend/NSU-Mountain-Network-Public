@@ -1,44 +1,20 @@
-from flask import jsonify
+from flasgger import swag_from
 from flask_praetorian import auth_required, current_user
 
+from app.service.auth.my_profile.route_handlers import my_data_s, my_roles_s
 from . import bp
 
 
-# потом пост нужен будет и т д, использовать как настройки
 @bp.route('/', methods=['GET'])
 @auth_required
+@swag_from('yaml/my_data.yaml')
 def my_data():
-	"""
-	Get all current user data and his items.
-	---
-	parameters:
-		- in: header
-		  name: Authorization
-		  schema:
-			type: string
-			example: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
-		  required: true
-	responses:
-	  200:
-		description: Data is given. Format ....
-        # value: prediction details
-        # schema:
-        #   $ref: '#/definitions/value'
-        # examples:
-        #   rgb: ['red', 'green', 'blue']
-    # definitions:
-    #   data:
-    #     type: array
-    #     items:
-    #       type: object
-    #         items:
-    #           $ref: '#/definitions/Color'
-    #       itemsInUse:
-    #         type: array
-    #         properties
-	#
-    #   Color:
-    #     type: string
-	"""
-	itemsRecords = current_user()
-	return jsonify(user=itemsRecords)
+	return my_data_s(current_user())
+
+
+@bp.route("/roles")
+@auth_required
+@swag_from('yaml/my_roles.yaml')
+def my_roles():
+
+	return my_roles_s(current_user())

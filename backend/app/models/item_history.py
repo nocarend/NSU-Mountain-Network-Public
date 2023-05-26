@@ -1,9 +1,11 @@
 from dataclasses import dataclass
 from datetime import datetime
 
-from app import db
+from app import db, timezone
 
-
+"""
+персональная дата вещи
+"""
 @dataclass
 class ItemHistory(db.Model):
 	__tablename__ = 'ITEM_HISTORY'
@@ -16,11 +18,11 @@ class ItemHistory(db.Model):
 	history_datetime: datetime
 
 	history_id = db.Column(db.Integer, primary_key=True, unique=True,
-	                       index=True)
+	                       autoincrement=True, index=True)
 	user_id = db.Column(db.Integer, db.ForeignKey('USER.user_id'), index=True)
 	action_id = db.Column(db.Integer, index=True)
 	item_id = db.Column(db.Integer, db.ForeignKey('ITEM.item_id'), index=True)
 	change_value = db.Column(db.Integer)
 	new_value = db.Column(db.Integer)
-	history_datetime = db.Column(db.DateTime, default=datetime.utcnow(),
+	history_datetime = db.Column(db.DateTime, default=datetime.now(tz=timezone),
 	                             index=True)

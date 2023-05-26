@@ -1,0 +1,17 @@
+Удалить пользователя
+---
+tags:
+  - Warehouseman option, work with users
+security:
+  - bearerAuth: [ ]
+parameters:
+  - in: path
+    name: username
+    schema:
+      type: string
+    required: true
+responses:
+  204:
+    description: Delete is successful.
+  403:
+    description: Element not found.

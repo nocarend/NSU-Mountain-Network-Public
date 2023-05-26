@@ -1,0 +1,19 @@
+Возвращает все вещи, представленные на складе.
+---
+tags:
+  - User option, work with items
+security:
+  - bearerAuth: [ ]
+responses:
+  '200':
+    description: Array with all items.
+    content:
+      application/json:
+        schema:
+          $ref: '#/components/schemas/ListItemsGetResponse'
+  '401':
+    description: Token is missing.
+    content:
+      application/json:
+        schema:
+          $ref: '#/components/schemas/AuthorizationErrorResponse'

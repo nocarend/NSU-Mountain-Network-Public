@@ -1,0 +1,44 @@
+Получить историю предметов из Item_in_use.
+Request body использует только кладовщик
+---
+tags:
+  - User option, work with items
+  - Warehouseman option, work with items
+security:
+  - bearerAuth: [ ]
+requestBody:
+  content:
+    application/json:
+      schema:
+        type: object
+        properties:
+          type:
+            type: string
+      examples:
+        allItems:
+          summary: Get all items
+          value:
+            type: all
+        takenItems:
+          summary: Get taken items
+          value:
+            type: taken
+        bookedItems:
+          summary: Get booked items
+          value:
+            type: booked
+        requestedItems:
+          summary: Get items that were requested
+          value:
+            type: requested
+        rejectedItems:
+          summary: Get requests that were rejected
+          value:
+            type: rejected
+        returnedItems:
+          summary: Get item's requests that were returned
+          value:
+            type: returned
+responses:
+  200:
+    description: List of items are given.

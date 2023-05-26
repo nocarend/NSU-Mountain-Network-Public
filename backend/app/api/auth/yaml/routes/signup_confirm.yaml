@@ -1,0 +1,15 @@
+Подтвердить регистрацию
+---
+tags:
+  - Authorization, authentication, etc
+parameters:
+  - in: path
+    name: token
+    schema:
+      $ref: '#/components/schemas/TokenСonfirmRequest'
+    required: true
+responses:
+  200:
+    description: Confirmation successful.
+  403:
+    description: Token doesn't exist or User has already confirmed email.

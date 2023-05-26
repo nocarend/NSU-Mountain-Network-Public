@@ -1,0 +1,13 @@
+Получить всю информацию о себе
+---
+tags:
+  - User's personal data
+security:
+  - bearerAuth: [ ]
+responses:
+  200:
+    description: Data is given.
+    content:
+      application/json:
+        schema:
+          $ref: '#/components/schemas/UserDataItemsResponse'

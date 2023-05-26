@@ -1,0 +1,27 @@
+Обновить параметры предмета.
+---
+tags:
+  - Warehouseman option, work with items
+security:
+  - bearerAuth: [ ]
+parameters:
+  - in: path
+    name: item_id
+    schema:
+      $ref: '#/components/schemas/ItemIdRequest'
+    required: true
+    description: Numeric ID of the item to get
+requestBody:
+  content:
+    application/json:
+      schema:
+        $ref: '#/components/schemas/ChangeItemDataRequest'
+responses:
+  200:
+    description: Update is successful.
+  401:
+    description: Token is missing.
+  403:
+    description: Not enough arguments or name has already taken
+  404:
+    description: category_id or item not found.

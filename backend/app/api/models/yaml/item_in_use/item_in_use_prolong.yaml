@@ -1,0 +1,16 @@
+Продлить бронь взятых предметов на какое-то время (в сумме максимум месяц)
+---
+tags:
+  - User option, work with items
+security:
+  - bearerAuth: [ ]
+requestBody:
+  content:
+    application/json:
+      schema:
+        $ref: '#/components/schemas/ListDaysUseIdRequest'
+responses:
+  200:
+    description: Items were prolonged.
+  403:
+    description: Wrong use_id.

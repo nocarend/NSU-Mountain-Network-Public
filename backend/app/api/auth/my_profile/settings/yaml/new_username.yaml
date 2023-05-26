@@ -1,0 +1,15 @@
+Смена юзернейма
+---
+tags:
+  - User's personal data
+security:
+  - bearerAuth: [ ]
+requestBody:
+  content:
+    application/json:
+      schema:
+        $ref: '#/components/schemas/NewUsernameRequest'
+      required: 'true'
+responses:
+  200:
+    description: Username has changed

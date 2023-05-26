@@ -1,0 +1,19 @@
+Обновить токен для авторизованного пользователя
+---
+tags:
+  - Authorization, authentication, etc
+security:
+  - bearerAuth: [ ]
+responses:
+  200:
+    description: New token to access private pages.
+    content:
+      application/json:
+        schema:
+          $ref: '#/components/schemas/AccessTokenResponse'
+  401:
+    description: "JWT token not found in headers under 'Authorization' or
+    Invalid token."
+  425:
+    description: "Access permission for token has not expired. may not
+    refresh."

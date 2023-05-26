@@ -1,0 +1,21 @@
+Получить всю информацию и вещи о данном пользователе
+---
+tags:
+  - Warehouseman option, work with users
+security:
+  - bearerAuth: [ ]
+parameters:
+    - in: path
+      name: username
+      schema:
+        type: string
+      required: true
+responses:
+  200:
+    description: Return user info and items.
+    content:
+      application/json:
+        schema:
+          $ref: '#/components/schemas/UserDataItemsResponse'
+  403:
+    description: Element not found.

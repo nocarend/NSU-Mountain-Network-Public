@@ -1,0 +1,17 @@
+Отправить запрос на регистрацию
+---
+tags:
+  - Authorization, authentication, etc
+requestBody:
+  content:
+    application/json:
+      schema:
+        $ref: '#/components/schemas/SignupRequest'
+      required: 'true'
+components:
+responses:
+  200:
+    description: User should check email to confirm registration.
+  403:
+    description: "Some of unique data (username, email or phone) is already 
+    taken."

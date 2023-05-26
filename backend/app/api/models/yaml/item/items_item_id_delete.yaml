@@ -1,0 +1,19 @@
+Удалить выбранный предмет.
+---
+tags:
+  - Warehouseman option, work with items
+security:
+  - bearerAuth: [ ]
+parameters:
+  - in: path
+    name: item_id
+    schema:
+      $ref: '#/components/schemas/ItemIdRequest'
+    required: true
+    description: Numeric ID of the item to get
+responses:
+  204:
+    description: Deletion is successful.
+  404:
+    description:
+      Item is not found.

@@ -1,0 +1,21 @@
+Вход через логин и пароль (аутентификация).
+---
+tags:
+  - Authorization, authentication, etc
+requestBody:
+  content:
+    application/json:
+      schema:
+        $ref: '#/components/schemas/LoginRequest'
+responses:
+  200:
+    description: Token to access private pages.
+    content:
+      application/json:
+        schema:
+          $ref: '#/components/schemas/AccessTokenResponse'
+  401:
+    description: Wrong login or password.
+  403:
+    description: "User is already authenticated or username | password is
+    missing."

@@ -1,0 +1,25 @@
+Изменить описание у заявки без изменения статуса
+---
+tags:
+  - Warehouseman option, work with items
+security:
+  - bearerAuth: [ ]
+requestBody:
+  content:
+    application/json:
+      schema:
+        type: object
+        properties:
+          description:
+            type: string
+parameters:
+  - in: path
+    name: id
+    schema:
+      type: integer
+    required: true
+responses:
+  200:
+    description: Requests are rejected.
+  403:
+    description: Not enough arguments or name has already taken

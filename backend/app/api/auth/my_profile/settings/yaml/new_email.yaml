@@ -1,0 +1,17 @@
+Смена электронной почты
+---
+tags:
+  - User's personal data
+security:
+  - bearerAuth: [ ]
+requestBody:
+  content:
+    application/json:
+      schema:
+        $ref: '#/components/schemas/NewEmailRequest'
+      required: 'true'
+responses:
+  200:
+    description: Request has sent to new email
+  403:
+    description: Wrong email

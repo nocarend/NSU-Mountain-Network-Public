@@ -1,0 +1,16 @@
+Отклонить заявки на бронь предметов
+---
+tags:
+  - Warehouseman option, work with items
+security:
+  - bearerAuth: [ ]
+requestBody:
+  content:
+    application/json:
+      schema:
+        $ref: '#/components/schemas/ListRejectItemRequest'
+responses:
+  200:
+    description: Requests are rejected.
+  403:
+    description: Not enough arguments or name has already taken

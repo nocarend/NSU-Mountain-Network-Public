@@ -1,0 +1,14 @@
+Получить всю историю денег
+---
+tags:
+  - Warehouseman option, work with items
+  - Treasureman
+security:
+  - bearerAuth: [ ]
+responses:
+  200:
+    description: History of all transactions are given.
+    content:
+      application/json:
+        schema:
+          $ref: '#/components/schemas/ListMoneyHistoryResponse'

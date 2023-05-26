@@ -1,0 +1,16 @@
+Уменьшить количество вещей в заявке (можно смержить с reject_item)
+---
+tags:
+  - Warehouseman option, work with items
+security:
+  - bearerAuth: [ ]
+requestBody:
+  content:
+    application/json:
+      schema:
+        $ref: '#/components/schemas/ListQuantityIdRequest'
+responses:
+  200:
+    description: Counts were decreased.
+  403:
+    description: Wrong use_id.

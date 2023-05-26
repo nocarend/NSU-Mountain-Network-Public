@@ -1,0 +1,16 @@
+Выдать список предметов по заявкам
+---
+tags:
+  - Warehouseman option, work with items
+security:
+  - bearerAuth: [ ]
+requestBody:
+  content:
+    application/json:
+      schema:
+        $ref: '#/components/schemas/ListGiveItemRequest'
+responses:
+  200:
+    description: Items were given.
+  403:
+    description: Wrong use_id.

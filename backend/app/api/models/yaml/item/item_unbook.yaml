@@ -1,0 +1,19 @@
+Разбронировать список предметов
+---
+tags:
+  - User option, work with items
+#  - Warehouseman option, work with items
+security:
+  - bearerAuth: [ ]
+requestBody:
+  content:
+    application/json:
+      schema:
+        $ref: '#/components/schemas/ListUseIdRequest'
+responses:
+  200:
+    description: Unbooking is successful.
+  403:
+    description: "Given wrong use_id or wrong quantity, or You are trying
+    to access items that
+    doesn't belong to you."

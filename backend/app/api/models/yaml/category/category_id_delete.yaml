@@ -1,0 +1,18 @@
+Удалить категорию по id. Можно применить только если эта катеория не
+содержит вещей.
+---
+tags:
+  - User option, work with items
+parameters:
+  - in: path
+    name: id
+    schema:
+      type: integer
+    required: true
+security:
+  - bearerAuth: [ ]
+responses:
+  200:
+    description: Category is deleted
+  404:
+    description: Category not found

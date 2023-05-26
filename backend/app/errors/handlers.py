@@ -1,7 +1,11 @@
 from flask import jsonify
 
-from app import db
 from app.errors import bp
+
+
+class ConditionsError(Exception):
+	description = "Subject doesn't satisfy conditions."
+	status_code = 412
 
 
 class MoneyError(Exception):
@@ -25,7 +29,8 @@ class WrongTokenError(Exception):
 
 
 class ValidationError(Exception):
-	description = "Some unique data already exists in database. Or missing data format."
+	description = "Some unique data already exists in database. Or missing "\
+	              "data format."
 	status_code = 403
 
 
@@ -41,16 +46,27 @@ class JSONNotEnoughError(Exception):
 
 class ElementNotFoundError(Exception):
 	description = "Cannot find element by given identificator."
-	status_code = 403
+	status_code = 404
 
 
 @bp.app_errorhandler(MoneyError)
 def not_enough_money(error):
+	from app import db
+	db.session.rollback()
+	return jsonify(error=error.description), error.status_code
+
+
+@bp.app_errorhandler(ConditionsError)
+def conditions(error):
+	from app import db
+	db.session.rollback()
 	return jsonify(error=error.description), error.status_code
 
 
 @bp.app_errorhandler(StockError)
 def not_enough_items(error):
+	from app import db
+	db.session.rollback()
 	return jsonify(error=error.description), error.status_code
 
 
@@ -65,7 +81,9 @@ def tokenError(error):
 
 
 @bp.app_errorhandler(ValidationError)
-def validationError(error):
+def validation_error(error):
+	from app import db
+	db.session.rollback()
 	return jsonify(error=error.description), error.status_code
 
 
@@ -76,20 +94,27 @@ def method_not_allowed(error):
 
 @bp.app_errorhandler(404)
 def not_found_error(error):
+	from app import db
+	db.session.rollback()
 	return jsonify(error="Path is not found."), 404
 
 
 @bp.app_errorhandler(500)
 def internal_error(error):
+	from app import db
 	db.session.rollback()
 	return jsonify(error="Unknown server error."), 500
 
 
 @bp.app_errorhandler(JSONNotEnoughError)
 def not_enough_error(error):
+	from app import db
+	db.session.rollback()
 	return jsonify(error=error.description), error.status_code
 
 
 @bp.app_errorhandler(ElementNotFoundError)
 def element_not_found_error(error):
+	from app import db
+	db.session.rollback()
 	return jsonify(error=error.description), error.status_code

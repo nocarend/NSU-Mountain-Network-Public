@@ -1,0 +1,24 @@
+Изменить данные у категории.
+---
+tags:
+  - Warehouseman option, work with items
+security:
+  - bearerAuth: [ ]
+requestBody:
+  content:
+    application/json:
+      schema:
+        $ref: '#/components/schemas/CreateCategoryRequest'
+parameters:
+  - in: path
+    name: id
+    schema:
+      type: string
+    required: true
+responses:
+  200:
+    description: Update is successful.
+  403:
+    description: Wrong Data.
+  404:
+    description: Category not found

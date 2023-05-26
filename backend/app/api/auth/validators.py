@@ -8,7 +8,8 @@ def email_validate(email):
 
 
 def phone_validate(phone):
-	regex = re.compile('[\\+]7(\\d{10})')
+	regex = re.compile('\d{10}')
+	print(phone, regex)
 	return re.fullmatch(regex, phone)
 
 

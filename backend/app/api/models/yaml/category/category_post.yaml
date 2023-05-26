@@ -1,0 +1,16 @@
+Добавить новую категорию
+---
+tags:
+  - Warehouseman option, work with items
+security:
+  - bearerAuth: [ ]
+requestBody:
+  content:
+    application/json:
+      schema:
+        $ref: '#/components/schemas/CreateUserRequest'
+responses:
+  200:
+    description: Category is added
+  403:
+    description: Category with given name already exists.

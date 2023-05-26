@@ -1,0 +1,17 @@
+Создать нового пользователя
+---
+tags:
+  - Warehouseman option, work with users
+security:
+  - bearerAuth: [ ]
+requestBody:
+  content:
+    application/json:
+      schema:
+        $ref: '#/components/schemas/CreateUserRequest'
+responses:
+  201:
+    description: User has created.
+  403:
+    description: "Some unique data already exists in database or Some data
+    don't match format."

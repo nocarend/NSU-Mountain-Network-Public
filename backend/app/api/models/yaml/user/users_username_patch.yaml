@@ -1,0 +1,25 @@
+Обновить данные и пополнить счёт.
+---
+tags:
+  - Warehouseman option, work with users
+  - Treasureman
+security:
+  - bearerAuth: [ ]
+requestBody:
+  content:
+    application/json:
+      schema:
+        $ref: '#/components/schemas/UserDataRequest'
+parameters:
+  - in: path
+    name: username
+    schema:
+      type: string
+    required: true
+responses:
+  200:
+    description: Update is successful.
+  403:
+    description: Wrong Data.
+  404:
+    description: User not found

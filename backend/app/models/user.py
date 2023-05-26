@@ -7,9 +7,10 @@ from time import time
 import jwt
 from flask import current_app
 
-from app import db, guard
+from app import db, guard, timezone
 from app.errors.handlers import ValidationError
 from app.helpers.functions import none_check
+from app.tokens import other_black_data, to_jti
 
 
 @dataclass
@@ -27,7 +28,7 @@ class User(db.Model):
 	# user_datetime: datetime
 	items: str
 
-	serialize_rules = ('-items.user',)
+	serialize_rules = ('-items.user', '-items')
 
 	user_id = db.Column(db.Integer, primary_key=True, unique=True, index=True)
 	user_login = db.Column(db.String(150), unique=True, index=True)
@@ -39,7 +40,7 @@ class User(db.Model):
 	user_roles = db.Column(db.Text, default='')
 	user_isactive = db.Column(db.Integer, default=1, server_default='',
 	                          index=True)
-	user_datetime = db.Column(db.DateTime, default=datetime.utcnow,
+	user_datetime = db.Column(db.DateTime,
 	                          index=True)
 
 	@property
@@ -168,8 +169,9 @@ class User(db.Model):
 	@staticmethod
 	def verify_settings_email_token(token):
 		try:
-			data = jwt.decode(token, current_app.config['JWT_SECRET_KEY'],
+			data = jwt.decode(token, current_app.config['SECRET_KEY'],
 			                  algorithms=['HS256'])
+			other_black_data(data)
 			user = User.search_by_id(data['confirm_email'])
 			email = data['email']
 			user.set_email(email)
@@ -180,9 +182,9 @@ class User(db.Model):
 	@staticmethod
 	def verify_reset_password_token(token):
 		try:
-			id = jwt.decode(token, current_app.config['JWT_SECRET_KEY'],
-			                algorithms=['HS256'])[
-				'reset_password']
+			data = jwt.decode(token, current_app.config['SECRET_KEY'],
+			                  algorithms=['HS256'])
+			other_black_data(data['jti'])
 		except:
 			return None
 		return User.query.get(id)
@@ -224,6 +226,7 @@ class User(db.Model):
 				self.user_email), UserSignup.search_by_login(self.user_login),
 			UserSignup.search_by_phone(self.user_phone)]):
 			raise ValidationError("Phone, email and login must be valid.")
+		self.user_datetime = datetime.now(tz=timezone)
 		db.session.add(self)
 		a_user = User.search_by_login(self.user_login)
 		self.add_salt()
@@ -244,38 +247,51 @@ class User(db.Model):
 
 	def get_reset_password_token(self, expires_in=600):
 		return jwt.encode(
-			{'reset_password': self.user_id, 'exp': time() + expires_in},
-			current_app.config['JWT_SECRET_KEY'], algorithm='HS256')
+			{
+				'reset_password': self.user_id, 'exp': time() + expires_in,
+				'jti':            to_jti()
+				},
+			current_app.config['SECRET_KEY'], algorithm='HS256')
 
 	def get_settings_confirm_email_token(self, email, expires_in=24 * 60 *
 	                                                             60):
 		return jwt.encode({
 			'confirm_email': self.user_id,
 			'exp':           time() + expires_in,
-			'email':         email
-			}, current_app.config['JWT_SECRET_KEY'],
+			'email':         email,
+			'jti':           to_jti({
+				                        'confirm_email': self.user_id,
+				                        'exp':           time() + expires_in,
+				                        'email':         email,
+				                        })
+			}, current_app.config['SECRET_KEY'],
 			algorithm='HS256')
 
 	def set_password(self, password):
 		self.user_password = guard.hash_password(
 			self.hashed_password(password))
-		db.session.commit()
+
+	# db.session.commit()
 
 	def set_login(self, login):
 		self.user_login = login
-		db.session.commit()
+
+	# db.session.commit()
 
 	def set_username(self, username):
 		self.user_name = username
-		db.session.commit()
+
+	# db.session.commit()
 
 	def set_phone(self, phone):
 		self.user_phone = phone
-		db.session.commit()
+
+	# db.session.commit()
 
 	def set_email(self, email):
 		self.user_email = email
-		db.session.commit()
+
+	# db.session.commit()
 
 	def hashed_password(self, password):
 		from app.models.user_salt import UserSalt

@@ -1,0 +1,26 @@
+Получить информацию о предмете по id. Для Кладовщика ещё выдаётся данные о
+пользователях.
+---
+tags:
+  - User option, work with items
+  - Warehouseman option, work with items
+security:
+  - bearerAuth: [ ]
+parameters:
+  - in: path
+    name: item_id
+    schema:
+      $ref: '#/components/schemas/ItemIdRequest'
+    required: true
+    description: Numeric ID of the item to get
+responses:
+  200:
+    description: Info about item.
+    content:
+      application/json:
+        schema:
+          allOf:
+            - $ref: '#/components/schemas/ItemGetResponse'
+            - $ref: '#/components/schemas/ListItemInUseResponse'
+  404:
+    description: There are no items with given id.

@@ -5,9 +5,9 @@ from time import time
 import jwt
 from flask import current_app
 
-from app import db
-from app.errors.handlers import ValidationError
-from app.helpers.functions import none_check
+from app import db, timezone
+from app.errors.handlers import WrongTokenError
+from app.tokens import other_black_data, to_jti
 
 
 @dataclass
@@ -21,13 +21,19 @@ class UserSignup(db.Model):
 	user_phone: str
 	signup_datetime: datetime
 
-	signup_id = db.Column(db.Integer, primary_key=True, autoincrement=True, index=True)
+	signup_id = db.Column(db.Integer, primary_key=True, autoincrement=True,
+	                      index=True)
 	user_login = db.Column(db.String(150), unique=True, index=True)
 	user_password = db.Column(db.String(128))
 	user_name = db.Column(db.String(120), index=True)
 	user_email = db.Column(db.String(120), unique=True, index=True)
 	user_phone = db.Column(db.String(9), unique=True, index=True)
-	signup_datetime = db.Column(db.DateTime, default=datetime.utcnow, index=True)
+	signup_datetime = db.Column(db.DateTime,
+	                            index=True)
+
+	@staticmethod
+	def getAll():
+		return UserSignup.query.all()
 
 	@staticmethod
 	def search_by_id(id):
@@ -48,28 +54,33 @@ class UserSignup(db.Model):
 	@staticmethod
 	def verify_confirmation_email_token(token):
 		try:
-			data = jwt.decode(token, current_app.config['JWT_SECRET_KEY'], algorithms=['HS256'])
-			user = UserSignup(user_login=data['login'], user_password=data['password'],
-			                  user_name=data['name'], user_email=data['email'], user_phone=data[
-					'phone'])
+			data = jwt.decode(token, current_app.config['SECRET_KEY'],
+			                  algorithms=['HS256'])
+			if data['exp'] < time():
+				raise WrongTokenError()
+			other_black_data(data)
+			user = UserSignup(user_login=data['login'],
+			                  user_password=data['password'],
+			                  user_name=data['name'], user_email=data[
+					'email'],
+			                  user_phone=data[
+				                  'phone'])
 			user.add()
 			return True
 		except:
 			return None
 
 	def add(self):
-		from app.models.user import User
-
-		if not none_check(2, [User.search_by_email(self.user_email), self.search_by_email(
-				self.user_email)]):
-			raise ValidationError()
+		self.signup_datetime = datetime.now(tz=timezone)
 		db.session.add(self)
-		db.session.commit()
+
+	# db.session.commit()
 
 	def add_user(self):
 		from app.models.user import User
 
-		user = User(user_login=self.user_login, user_password=self.user_password,
+		user = User(user_login=self.user_login,
+		            user_password=self.user_password,
 		            user_name=self.user_name, user_email=self.user_email,
 		            user_phone=self.user_phone)
 		db.session.add(user)
@@ -82,12 +93,16 @@ class UserSignup(db.Model):
 
 	def delete(self):
 		db.session.delete(self)
-		db.session.commit()
 
-	def get_confirmation_token(self, expires_in=60 * 60 * 24 * 7):
+	# db.session.commit()
+
+	def get_confirmation_token(self, expires_in=60 * 60 * 24):
 		return jwt.encode({
 			'login': self.user_login, 'password': self.user_password,
 			'name':  self.user_name,
-			'email': self.user_email, 'phone': self.user_phone, 'exp': time() + expires_in
+			'email': self.user_email, 'phone': self.user_phone,
+			'exp':   time() + expires_in,
+			'jti':   to_jti(
+				str(time() + expires_in) + self.user_login + self.user_name)
 			},
-			current_app.config['JWT_SECRET_KEY'], algorithm='HS256')
+			current_app.config['SECRET_KEY'], algorithm='HS256')
